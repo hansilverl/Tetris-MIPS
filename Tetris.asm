@@ -1,23 +1,12 @@
 .data
 score_text:	.asciiz "SCORE: "
 
-.text	# W x H = 512 x 1024 | PIXELS x (W x H) = 4 x 4 | ADDRESS FOR DISPLAY = 0x10040000(heap)
+.text	#ADDRESS = 0x10040000(heap)
 main:
 	lui  $9, 0x1004
-	addi $9, $9, 2576    # vertical/horizontal start drawing pos: $9(w) = 16; $9(h) = 2560
+	addi $9, $9, 2576    # start drawing pos: $9(w) = 16; $9(h) = 2560
     li   $13, 170        # max vertical drawing
-    ########  Pieces  ########
-    #   0xffffff  ==>  Wall	 #
-   	#   0x0000ff  ==>   O	 #
-    #   0xff00ff  ==>   L	 #
-    #   0xff9900  ==>   J	 #
-    #   0x00ff00  ==>   S	 #
-    #   0x00ffff  ==>   Z	 #
-    #   0xff0000  ==>   I	 #
-    #   0xffff00  ==>   T	 #
-    ##########################
-     	
-# DRAW WALL
+
 heightTest:  
 	beq  $13, 0, paramToDrawFrame
 	beq  $13, 170, paramToDrawLine
@@ -47,7 +36,7 @@ paramToNextLine:
     
     j heightTest
 
-# draw the frame that shows the next piece incoming
+# Next incoming piece
 frameHeightTest:
 	beq  $13, 0, _1stPieceSelection
 	beq  $13, 1, paramToDrawFrameLine
@@ -99,8 +88,6 @@ eraseFromFrame:
 	bgt  $14, 0, eraseFromFrame
 	addi $12, $12, -1
 	j checkIfNeedToErase
-	
-# look up to the frame to check if it has something drawn
 paramCheckFrame:
 	lui  $7, 0x1004
 	addi $7, $7, 24408
@@ -141,20 +128,19 @@ checkForEnd:
 	jr   $31	
 
 _1stPieceSelection:
-	li   $2, 42		# 42 syscall to random number with range
-	li   $5, 4   	# $a1 is the max random number
-	syscall      	# generated number will be at $a0($4)
+	li   $2, 42		
+	li   $5, 4   	
+	syscall      	
 	
-	add  $17, $0, $4  # store in $17 the next piece number
+	add  $17, $0, $4  
 	
-# MOVEMENT
+# Motion
 paramToMove:
 	lui  $8, 0xffff
 	lui  $9, 0x1004
-	li   $22, 6		   # 6 = line that's start drawing
+	li   $22, 6		   
 	jal  checkForEnd
-	li   $24, 0		# key pressed
-	li   $14, 0		# speed
+	li   $24, 0		
 	li   $15, 0
 
 	add  $16, $0, $17
@@ -170,16 +156,16 @@ nextPieceSelection:
 	
 	add  $17, $0, $4  # store in $17 the next piece number
 	
-	jal  paramCheckFrame	# go check if needs to erase the frame
+	jal  paramCheckFrame	
 	
 	lui  $9, 0x1004
-	beq  $17, 0, oAsFrame
-	beq  $17, 1, lAsFrame
-	beq  $17, 2, iAsFrame
-	beq  $17, 3, tAsFrame
+	beq  $17, 0, oFrame
+	beq  $17, 1, IFrame
+	beq  $17, 2, iFrame
+	beq  $17, 3, tFrame
 
-# TO DRAW 'O'
-oAsFrame:
+
+oFrame:
 	addi $9, $9, 24456
 	j paramToDrawO
 
@@ -215,7 +201,7 @@ firstDrawO:
 	bgt  $19, 0, newParamfirstDrawO
 
 # TO DRAW 'L'
-lAsFrame:
+IFrame:
 	addi $9, $9, 24504
 	j paramToDrawL
 
@@ -259,7 +245,7 @@ firstDrawL:
 	bgt  $19, 0, newParamfirstDrawL
 
 # TO DRAW 'I'
-iAsFrame:
+iFrame:
 	addi $9, $9, 28520
 	j paramToDrawI
 
@@ -295,7 +281,7 @@ firstDrawI:
 	bgt  $19, 0, newParamfirstDrawI
 
 # TO DRAW 'T'
-tAsFrame:
+tFrame:
 	addi $9, $9, 24472
 	j paramToDrawT
 
